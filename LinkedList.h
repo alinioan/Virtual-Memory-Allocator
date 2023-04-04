@@ -1,29 +1,31 @@
 #ifndef linked_list_h
 #define linked_list_h
 
-typedef struct ll_node_t
-{
-    void* data;
-    struct ll_node_t* next;
-} ll_node_t;
+typedef struct dll_node_t dll_node_t;
+struct dll_node_t {
+    void* data; 
+    dll_node_t *prev, *next;
+};
 
-typedef struct linked_list_t
-{
-    ll_node_t* head;
+typedef struct doubly_linked_list_t doubly_linked_list_t;
+struct doubly_linked_list_t {
+    dll_node_t* head;
+    dll_node_t* tail;
     unsigned int data_size;
     unsigned int size;
-} linked_list_t;
+};  
 
-linked_list_t* ll_create(unsigned int data_size);
+doubly_linked_list_t* dll_create(unsigned int data_size);
 
-void ll_add_nth_node(linked_list_t* list, unsigned int n, const void* new_data);
-ll_node_t* ll_remove_nth_node(linked_list_t* list, unsigned int n);
+dll_node_t* dll_get_nth_node(doubly_linked_list_t* list, unsigned int n);
+void dll_add_nth_node(doubly_linked_list_t* list, unsigned int n, const void* new_data);
+dll_node_t* dll_remove_nth_node(doubly_linked_list_t* list, unsigned int n);
 
-unsigned int ll_get_size(linked_list_t* list);
+unsigned int dll_get_size(doubly_linked_list_t* list);
 
-void ll_free(linked_list_t** pp_list);
+void dll_free(doubly_linked_list_t** pp_list);
 
-void ll_print_int(linked_list_t* list);
-void ll_print_string(linked_list_t* list);
+void dll_print_int_list(doubly_linked_list_t* list);
+void dll_print_string_list(doubly_linked_list_t* list);
 
 #endif
