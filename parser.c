@@ -48,11 +48,10 @@ void p_read(arena_t *arena, char *argv[], size_t argc)
     read(arena, adress, size);
 }
 
-void p_write(arena_t *arena, char *argv[], size_t argc, char *data)
+void p_write(arena_t *arena, char *argv[], size_t argc, int8_t *data)
 {
-    INVALID_COMMAND(argc != 3);
+    INVALID_COMMAND(argc != 2);
     uint64_t adress, size;
-    int8_t *data;
     adress = atol(argv[0]);
     size = atol(argv[1]);
     write(arena, adress, size, data);
@@ -73,17 +72,17 @@ void parse_command(arena_t **arena,
     if (strcmp(command, "ALLOC_ARENA") == 0) {
         *arena = p_alloc_arena(argv, argc);
     } else if (strcmp(command, "ALLOC_BLOCK") == 0) {
-        p_alloc_block(arena, argv, argc);
+        p_alloc_block(*arena, argv, argc);
     } else if (strcmp(command, "FREE_BLOCK") == 0) {
-        p_free_block(arena, argv, argc);
+        p_free_block(*arena, argv, argc);
     } else if (strcmp(command, "READ") == 0) {
-        p_read(arena, argv, argc);
+        p_read(*arena, argv, argc);
     } else if (strcmp(command, "WRITE") == 0) {
-        p_write(arena, argv, argc, data);
+        p_write(*arena, argv, argc, (int8_t *)data);
     } else if (strcmp(command, "PMAP") == 0) {
-        p_pmap(arena, argc);
+        p_pmap(*arena, argc);
     } else if (strcmp(command, "DEALLOC_ARENA") == 0) {
-        p_dealloc_arena(arena, argc, exit_check);
+        p_dealloc_arena(*arena, argc, exit_check);
     } else {
         printf("Invalid command. Please try again.\n");
     }

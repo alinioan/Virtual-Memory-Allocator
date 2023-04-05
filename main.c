@@ -27,13 +27,22 @@ void get_arguments(char *my_argv[MAX_ARGC], size_t *my_argc, char *data)
 	my_argv[i++] = strtok(NULL, " ");
 	while (my_argv[i - 1] && i < MAX_ARGC)
 		my_argv[i++] = strtok(NULL, " ");
-	char *rest = strtok(NULL, " ");
-	while (rest) {
-		strcat(data, rest);
-		strcat(data, " ");
+	
+	if (data) {
+		char *rest = strtok(NULL, " ");
+		// strncpy(data, rest, strlen(rest));
+		while (rest) {
+			strcat(data, rest);
+			strcat(data, " ");
+			rest = strtok(NULL, " ");
+		}
+		data[strlen(data) - 1] = '\0';
+		*my_argc = 2;
+	} else {
+		if (my_argv[i - 1])
+			i++;
+		*my_argc = i - 1;
 	}
-	data[strlen(data) - 1] = '\0';
-	*my_argc = i;
 }
 
 int main(void)
@@ -54,12 +63,20 @@ int main(void)
 			free(command_line);
 			continue;
 		}
-		if (command_line[0] == 'W')
 		// get the main command and its args
 		command = strtok(command_line, " ");
+		if (strcmp(command, "WRITE") == 0) {
+			data = malloc(CMD_MAX_SIZE * sizeof(char));
+			data[0] = '\0';
+		}
 		get_arguments(my_argv, &my_argc, data);
 		
 		parse_command(&arena ,command, my_argv, my_argc, &exit_check, data);
+		
+		if (data) {
+			free(data);
+			data = NULL;
+		}
 		free(command_line);
 	}
 	return 0;
