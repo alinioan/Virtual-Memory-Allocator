@@ -54,6 +54,7 @@ void p_write(arena_t *arena, char *argv[], size_t argc, int8_t *data)
     uint64_t adress, size;
     adress = atol(argv[0]);
     size = atol(argv[1]);
+    printf("%s", data);
     write(arena, adress, size, data);
 }
 
