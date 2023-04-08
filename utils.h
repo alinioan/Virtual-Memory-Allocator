@@ -25,6 +25,18 @@
 		}													\
 	} while(0)
 
+#define INVALID_BLOCK(address, size, arena_size)							\
+	do {																	\
+		if (address > arena_size) {											\
+			printf("The allocated address is outside the size of arena\n");	\
+			return;															\
+		}																	\
+		if (address + size > arena_size) {									\
+			printf("The end address is past the size of the arena\n");		\
+			return;															\
+		}																	\
+	} while (0)																\
+
 void parse_command(arena_t **arena,
 				   char *command, char *agrv[], size_t argc,
 				   int *exit_check,
