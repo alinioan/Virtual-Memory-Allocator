@@ -28,7 +28,6 @@ void get_arguments(char *my_argv[MAX_ARGC], size_t *my_argc, char *data)
 	my_argv[i++] = strtok(NULL, " ");
 	while (my_argv[i - 1] && i < MAX_ARGC)
 		my_argv[i++] = strtok(NULL, " ");
-	
 	// if command is WRITE
 	if (data) {
 		// get the rest of the words from the first line of the command
@@ -75,7 +74,6 @@ int main(void)
 		}
 		// get the main command and its args
 		command = strtok(command_line, " ");
-		
 		// write command is special because the string at the end needs
 		// to be 1 single argument (that argument is stored in data)
 		if (strcmp(command, "WRITE") == 0) {
@@ -83,9 +81,7 @@ int main(void)
 			data[0] = '\0';
 		}
 		get_arguments(my_argv, &my_argc, data);
-		
-		parse_command(&arena ,command, my_argv, my_argc, &exit_check, data);
-		
+		parse_command(&arena, command, my_argv, my_argc, &exit_check, data);
 		if (data) {
 			free(data);
 			data = NULL;
