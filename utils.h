@@ -17,17 +17,21 @@
 		}									\
 	} while (0)
 
-#define INVALID_COMMAND(assertion)							\
-	do {													\
-		if (assertion) {									\
-			printf("Invalid command. Please try again.\n"); \
-			return;											\
-		}													\
+#define INVALID_COMMAND(assertion, argc)						\
+	do {														\
+		if (assertion) {										\
+			printf("Invalid command. Please try again.\n"); 	\
+			while (argc) {										\
+				printf("Invalid command. Please try again.\n"); \
+				argc--;											\
+			}													\
+			return;												\
+		}														\
 	} while(0)
 
 #define INVALID_BLOCK(address, size, arena_size)							\
 	do {																	\
-		if (address > arena_size) {											\
+		if (address >= arena_size) {											\
 			printf("The allocated address is outside the size of arena\n");	\
 			return;															\
 		}																	\
