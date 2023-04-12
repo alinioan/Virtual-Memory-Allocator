@@ -6,7 +6,7 @@
 #include <errno.h>
 #include "vma.h"
 
-/* macro for handling error codes */
+// macro for handling error codes
 #define DIE(assertion, call_description)	\
 	do {									\
 		if (assertion) {					\
@@ -17,33 +17,22 @@
 		}									\
 	} while (0)
 
-#define INVALID_COMMAND(assertion, argc)						\
+// macro for printing the invalid command error message
+#define INVALID_COMMAND(assertion, argc, argc_, result)			\
 	do {														\
-		if (assertion) {										\
-			printf("Invalid command. Please try again.\n"); 	\
-			while (argc) {										\
+		if ((assertion)) {										\
+			printf("Invalid command. Please try again.\n");		\
+			while ((argc)) {									\
 				printf("Invalid command. Please try again.\n"); \
-				argc--;											\
+				(argc_)--;										\
 			}													\
-			return;												\
+			result = 1;											\
 		}														\
-	} while(0)
-
-#define INVALID_BLOCK(address, size, arena_size)							\
-	do {																	\
-		if (address >= arena_size) {											\
-			printf("The allocated address is outside the size of arena\n");	\
-			return;															\
-		}																	\
-		if (address + size > arena_size) {									\
-			printf("The end address is past the size of the arena\n");		\
-			return;															\
-		}																	\
-	} while (0)																\
+	} while (0)
 
 void parse_command(arena_t **arena,
 				   char *command, char *agrv[], size_t argc,
 				   int *exit_check,
-				   char* data);
+				   char *data);
 
 #endif /* __UTILS_H_ */

@@ -28,23 +28,26 @@ void get_arguments(char *my_argv[MAX_ARGC], size_t *my_argc, char *data)
 	my_argv[i++] = strtok(NULL, " ");
 	while (my_argv[i - 1] && i < MAX_ARGC)
 		my_argv[i++] = strtok(NULL, " ");
-	// if command is WRITE
+	// if command is WRITE or MPROTECT
 	if (data) {
 		// get the rest of the words from the first line of the command
-		char *rest = strtok(NULL, " ");
-		while (rest) {
-			strcat(data, rest);
-			strcat(data, " ");
-			rest = strtok(NULL, " ");
+		char *rest = strtok(NULL, " |");
+		if (!rest) {
+			data[0] = '\n';
+		} else {
+			while (rest) {
+				strcat(data, rest);
+				strcat(data, " ");
+				rest = strtok(NULL, " |");
+			}
+			data[strlen(data) - 1] = '\n';
 		}
-		data[strlen(data) - 1] = '\n';
 		rest = malloc(sizeof(char) * atol(my_argv[1]));
 		// reads multiple lines for the WRITE data
 		while ((long)strlen(data) < atol(my_argv[1])) {
 			fgets(rest, atol(my_argv[1]), stdin);
 			strcat(data, rest);
 		}
-		data[strlen(data) - 1] = '\0';
 		free(rest);
 		*my_argc = 2;
 	} else {
@@ -76,10 +79,10 @@ int main(void)
 		command = strtok(command_line, " ");
 		// write command is special because the string at the end needs
 		// to be 1 single argument (that argument is stored in data)
-		if (strcmp(command, "WRITE") == 0) {
-			data = malloc(CMD_MAX_SIZE * sizeof(char));
-			data[0] = '\0';
-		}
+		if (strcmp(command, "WRITE") == 0)
+			data = calloc(CMD_MAX_SIZE, sizeof(char));
+		if (strcmp(command, "MPROTECT") == 0)
+			data = calloc(CMD_MAX_SIZE, sizeof(char));
 		get_arguments(my_argv, &my_argc, data);
 		parse_command(&arena, command, my_argv, my_argc, &exit_check, data);
 		if (data) {

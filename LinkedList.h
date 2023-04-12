@@ -12,7 +12,7 @@ struct doubly_linked_list_t {
 	dll_node_t *head;
 	dll_node_t *tail;
 	unsigned int data_size;
-	unsigned int size;
+	size_t size;
 };
 
 doubly_linked_list_t *dll_create(unsigned int data_size);

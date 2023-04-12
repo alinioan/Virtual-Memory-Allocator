@@ -22,14 +22,20 @@ arena_t *p_alloc_arena(char *argv[], size_t argc)
 
 void p_dealloc_arena(arena_t *arena, size_t argc, int *exit_check)
 {
-	INVALID_COMMAND(argc != 0, argc);
+	int8_t result = 0;
+	INVALID_COMMAND(argc != 0, argc, argc, result);
+	if (result)
+		return;
 	*exit_check = 1;
 	dealloc_arena(arena);
 }
 
 void p_alloc_block(arena_t *arena, char *argv[], size_t argc)
 {
-	INVALID_COMMAND(argc != 2, argc);
+	int8_t result = 0;
+	INVALID_COMMAND(argc != 2, argc, argc, result);
+	if (result)
+		return;
 	uint64_t adress, size;
 	adress = atol(argv[0]);
 	size = atol(argv[1]);
@@ -38,14 +44,20 @@ void p_alloc_block(arena_t *arena, char *argv[], size_t argc)
 
 void p_free_block(arena_t *arena, char *argv[], size_t argc)
 {
-	INVALID_COMMAND(argc != 1, argc);
+	int8_t result = 0;
+	INVALID_COMMAND(argc != 1, argc, argc, result);
+	if (result)
+		return;
 	uint64_t adress = atol(argv[0]);
 	free_block(arena, adress);
 }
 
 void p_read(arena_t *arena, char *argv[], size_t argc)
 {
-	INVALID_COMMAND(argc != 2, argc);
+	int8_t result = 0;
+	INVALID_COMMAND(argc != 2, argc, argc, result);
+	if (result)
+		return;
 	uint64_t adress, size;
 	adress = atol(argv[0]);
 	size = atol(argv[1]);
@@ -54,18 +66,36 @@ void p_read(arena_t *arena, char *argv[], size_t argc)
 
 void p_write(arena_t *arena, char *argv[], size_t argc, int8_t *data)
 {
-	INVALID_COMMAND(argc != 2, argc);
+	int8_t result = 0;
+	INVALID_COMMAND(argc != 2, argc, argc, result);
+	if (result)
+		return;
 	uint64_t adress, size;
 	adress = atol(argv[0]);
 	size = atol(argv[1]);
-	printf("%s", data);
 	write(arena, adress, size, data);
 }
 
 void p_pmap(arena_t *arena, size_t argc)
 {
-	INVALID_COMMAND(argc != 0, argc);
+	int8_t result = 0;
+	INVALID_COMMAND(argc != 0, argc, argc, result);
+	if (result)
+		return;
 	pmap(arena);
+}
+
+void p_mprotect(arena_t *arena, size_t argc, char *argv[], int8_t *data)
+{
+	int8_t result = 0;
+	INVALID_COMMAND(argc != 2, argc, argc, result);
+	if (result)
+		return;
+	uint64_t address;
+	address = atol(argv[0]);
+	data[strlen((char *)data) - 1] = ' ';
+	strcat((char *)data, argv[1]);
+	mprotect(arena, address, data);
 }
 
 void parse_command(arena_t **arena,
@@ -88,6 +118,8 @@ void parse_command(arena_t **arena,
 		p_pmap(*arena, argc);
 	} else if (strcmp(command, "DEALLOC_ARENA") == 0) {
 		p_dealloc_arena(*arena, argc, exit_check);
+	} else if (strcmp(command, "MPROTECT") == 0) {
+		p_mprotect(*arena, argc, argv, (int8_t *)data);
 	} else {
 		printf("Invalid command. Please try again.\n");
 		while (argc) {

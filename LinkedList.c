@@ -18,8 +18,8 @@ dll_create(unsigned int data_size)
 	return list;
 }
 
-dll_node_t*
-dll_get_nth_node(doubly_linked_list_t* list, unsigned int n)
+dll_node_t
+*dll_get_nth_node(doubly_linked_list_t *list, unsigned int n)
 {
 	if (!list) {
 		printf("List not created");
@@ -33,7 +33,6 @@ dll_get_nth_node(doubly_linked_list_t* list, unsigned int n)
 	dll_node_t *crt = list->head;
 	if (n > list->size)
 		return list->tail;
-	
 	while (crt->next && n != 0) {
 		crt = crt->next;
 		n--;
@@ -42,25 +41,26 @@ dll_get_nth_node(doubly_linked_list_t* list, unsigned int n)
 }
 
 void
-dll_add_nth_node(doubly_linked_list_t* list, unsigned int n, const void* new_data)
+dll_add_nth_node(doubly_linked_list_t *list,
+				 unsigned int n, const void *new_data)
 {
 	if (!list) {
-	    printf("List not created");
-        return;
-    }
-    dll_node_t* crt;
-    dll_node_t *new = malloc(sizeof(dll_node_t));
-    DIE(!new, "malloc fail!");
-    new->data = malloc(list->data_size);
-    DIE(!new->data, "malloc fail!");
-    memcpy(new->data, new_data, list->data_size);
+		printf("List not created");
+		return;
+	}
+	dll_node_t *crt;
+	dll_node_t *new = malloc(sizeof(dll_node_t));
+	DIE(!new, "malloc fail!");
+	new->data = malloc(list->data_size);
+	DIE(!new->data, "malloc fail!");
+	memcpy(new->data, new_data, list->data_size);
 
-    if (!list->head) {
-        new->next = NULL;
+	if (!list->head) {
+		new->next = NULL;
 		new->prev = NULL;
-        list->head = new;
+		list->head = new;
 		list->tail = new;
-    } else if (n == 0) {
+	} else if (n == 0) {
 		new->next = list->head;
 		new->prev = NULL;
 		list->head->prev = new;
@@ -80,25 +80,29 @@ dll_add_nth_node(doubly_linked_list_t* list, unsigned int n, const void* new_dat
 		new->prev = crt;
 		crt->next->prev = new;
 		crt->next = new;
-	}   
-    list->size++;
+	}
+	list->size++;
 }
 
-dll_node_t*
-dll_remove_nth_node(doubly_linked_list_t* list, unsigned int n)
+dll_node_t
+*dll_remove_nth_node(doubly_linked_list_t *list, unsigned int n)
 {
-    if (!list) {
-        printf("List not created");
-        return NULL;
+	if (!list) {
+		printf("List not created");
+		return NULL;
 	}
 	if (list->size == 0) {
 		printf("List is empty");
 		return NULL;
 	}
-	dll_node_t* crt;	
-	if (n == 0) {
+	dll_node_t *crt;
+	if (list->size == 1) {
 		crt = list->head;
-		list->head->next->prev = NULL; 
+		list->head = NULL;
+		list->tail = NULL;
+	} else if (n == 0) {
+		crt = list->head;
+		list->head->next->prev = NULL;
 		list->head = list->head->next;
 	} else if (n >= list->size - 1) {
 		crt = list->tail;
@@ -106,78 +110,79 @@ dll_remove_nth_node(doubly_linked_list_t* list, unsigned int n)
 		list->tail = list->tail->prev;
 	} else {
 		crt = list->head;
-		while(crt->next && n > 0) {
+		while (crt->next && n > 0) {
 			crt = crt->next;
 			n--;
-		} 
+		}
 		crt->prev->next = crt->next;
 		crt->next->prev = crt->prev;
 	}
-    list->size--;
-    return crt;
+	list->size--;
+	return crt;
 }
 
 unsigned int
-dll_get_size(doubly_linked_list_t* list)
+dll_get_size(doubly_linked_list_t *list)
 {
-	 if (!list) {
-        printf("List not created");
-        return -1;
-    }
-    return list->size;
+	if (!list) {
+		printf("List not created");
+		return -1;
+	}
+	return list->size;
 }
 
 void
-dll_free(doubly_linked_list_t** pp_list)
+dll_free(doubly_linked_list_t **pp_list)
 {
-	 if (!(*pp_list)) {
-        printf("List not created");
-        return;
-    }
-    dll_node_t *crt = (*pp_list)->head, *del;
+	if (!(*pp_list)) {
+		printf("List not created");
+		return;
+	}
+	dll_node_t *crt = (*pp_list)->head, *del;
 	while ((*pp_list)->size) {
 		del = crt;
 		crt = crt->next;
-        free(del->data);
+		free(del->data);
 		free(del);
 		(*pp_list)->size--;
 	}
-    (*pp_list)->size = 0;
-    (*pp_list)->head = NULL;
-    free(*pp_list);
+	(*pp_list)->size = 0;
+	(*pp_list)->head = NULL;
+	(*pp_list)->tail = NULL;
+	free(*pp_list);
 	*pp_list = NULL;
 }
 
 void
-dll_print_int(doubly_linked_list_t* list)
+dll_print_int(doubly_linked_list_t *list)
 {
-    if (!list) {
-        printf("List not created");
-        return;
-    }
-    dll_node_t *crt = list->head;
-    int *value;
-    while (crt) {
-        value = (int*)crt->data;
-        printf("%d ", *value);
-        crt = crt->next;
-    }
-    printf("\n");
+	if (!list) {
+		printf("List not created");
+		return;
+	}
+	dll_node_t *crt = list->head;
+	int *value;
+	while (crt) {
+		value = (int *)crt->data;
+		printf("%d ", *value);
+		crt = crt->next;
+	}
+	printf("\n");
 }
 
 void
-dll_print_string(doubly_linked_list_t* list)
+dll_print_string(doubly_linked_list_t *list)
 {
-    if (!list) {
-        printf("List not created");
-        return;
-    }
-    dll_node_t *crt = list->head;
-    char* str;
-    while (crt) {
-        str = (char*)crt->data;
-        printf("%s ", str);
-        crt = crt->next;
-    }
-    printf("\n");
+	if (!list) {
+		printf("List not created");
+		return;
+	}
+	dll_node_t *crt = list->head;
+	char *str;
+	while (crt) {
+		str = (char *)crt->data;
+		printf("%s ", str);
+		crt = crt->next;
+	}
+	printf("\n");
 }
