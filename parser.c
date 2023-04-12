@@ -80,6 +80,8 @@ void p_write(arena_t *arena, char *argv[], size_t argc, int8_t *data)
 	uint64_t adress, size;
 	adress = atol(argv[0]);
 	size = atol(argv[1]);
+	if (data[size] == '\n')
+		data[size] = 0;
 	write(arena, adress, size, data);
 }
 

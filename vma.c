@@ -309,6 +309,10 @@ void free_block(arena_t *arena, const uint64_t address)
 		printf("Invalid address for free.\n");
 		return;
 	}
+	if (address != (*(miniblock_t *)mini_crt->data).start_address)  {
+		printf("Invalid address for free.\n");
+		return;
+	}
 	// if mini is first in list or last in list
 	if (pos_mini == 0 || pos_mini == prev_block->miniblock_list->size - 1) {
 		delete_miniblock(arena, prev_block, pos_mini, pos_block);
@@ -424,6 +428,7 @@ void read(arena_t *arena, uint64_t address, uint64_t size)
 	size_written = 0;
 	// the position where the reading starts in the curent miniblock
 	read_start_address = address - mini->start_address;
+	i = mini_crt;
 	while (size_written < (int64_t)size && i) {
 		src_buff = (int8_t *)mini->rw_buffer + read_start_address;
 		dest_buff = data + size_written;
@@ -431,7 +436,7 @@ void read(arena_t *arena, uint64_t address, uint64_t size)
 		if (size_buff > size - size_written)
 			size_buff = size - size_written;
 		memcpy(dest_buff, src_buff, size_buff);
-		size_written += read_start_address + mini->size;
+		size_written += size_buff;
 		i = i->next;
 		if (i)
 			mini = (miniblock_t *)i->data;
@@ -477,7 +482,7 @@ void write(arena_t *arena, const uint64_t address,
 			   "Writing %ld characters.\n",
 			   prev_block->start_address - address + prev_block->size);
 	get_mini(prev_block->miniblock_list, address, &mini_crt, &pos_mini);
-	dll_node_t *i = mini_crt;
+	dll_node_t *i;
 	int64_t size_written = 0, write_start_address;
 	miniblock_t *mini = (miniblock_t *)mini_crt->data;
 	int8_t *src_buff, *dest_buff;
@@ -498,14 +503,15 @@ void write(arena_t *arena, const uint64_t address,
 	size_written = 0;
 	// the position where the writting starts in the curent miniblock
 	write_start_address = address - mini->start_address;
+	i = mini_crt;
 	while (size_written < (int64_t)size && i) {
 		dest_buff = (int8_t *)mini->rw_buffer + write_start_address;
-		src_buff = data + size_written + write_start_address;
+		src_buff = data + size_written;
 		size_buff = mini->size - write_start_address;
 		if (size_buff > size - size_written)
 			size_buff = size - size_written;
 		memcpy(dest_buff, src_buff, size_buff);
-		size_written += write_start_address + mini->size;
+		size_written += size_buff;
 		i = i->next;
 		if (i)
 			mini = (miniblock_t *)i->data;
@@ -513,7 +519,7 @@ void write(arena_t *arena, const uint64_t address,
 	}
 }
 
-// gets the information for the begining of the pmap output 
+// gets the information for the begining of the pmap output
 void get_pmap_info(const arena_t *arena,
 				   uint64_t *total_mem, uint64_t *free_mem,
 				   uint64_t *allocated_blocks, uint64_t *allocated_minis)
