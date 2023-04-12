@@ -1,3 +1,4 @@
+// Copyright 2023 Alexandru Alin-Ioan 312CA
 #ifndef __UTILS_H_
 #define __UTILS_H_
 

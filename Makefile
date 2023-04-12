@@ -1,4 +1,4 @@
-# Alexandru Alin-Ioan 312CA 2023
+# Copyright 2023 Alexandru Alin-Ioan 312CA
 
 # compiler setup
 CC=gcc

@@ -1,3 +1,4 @@
+// Copyright 2023 Alexandru Alin-Ioan 312CA
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

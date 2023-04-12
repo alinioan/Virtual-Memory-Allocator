@@ -1,9 +1,11 @@
+// Copyright 2023 Alexandru Alin-Ioan 312CA
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "vma.h"
 #include "utils.h"
 
+// parse alloc_arena
 arena_t *p_alloc_arena(char *argv[], size_t argc)
 {
 	if (argc != 1) {
@@ -20,6 +22,7 @@ arena_t *p_alloc_arena(char *argv[], size_t argc)
 	return arena;
 }
 
+// parese dealloc_arena
 void p_dealloc_arena(arena_t *arena, size_t argc, int *exit_check)
 {
 	int8_t result = 0;
@@ -30,6 +33,7 @@ void p_dealloc_arena(arena_t *arena, size_t argc, int *exit_check)
 	dealloc_arena(arena);
 }
 
+// parse alloc_block
 void p_alloc_block(arena_t *arena, char *argv[], size_t argc)
 {
 	int8_t result = 0;
@@ -42,6 +46,7 @@ void p_alloc_block(arena_t *arena, char *argv[], size_t argc)
 	alloc_block(arena, adress, size);
 }
 
+// parse free_block
 void p_free_block(arena_t *arena, char *argv[], size_t argc)
 {
 	int8_t result = 0;
@@ -52,6 +57,7 @@ void p_free_block(arena_t *arena, char *argv[], size_t argc)
 	free_block(arena, adress);
 }
 
+// parse read
 void p_read(arena_t *arena, char *argv[], size_t argc)
 {
 	int8_t result = 0;
@@ -64,6 +70,7 @@ void p_read(arena_t *arena, char *argv[], size_t argc)
 	read(arena, adress, size);
 }
 
+// pares write
 void p_write(arena_t *arena, char *argv[], size_t argc, int8_t *data)
 {
 	int8_t result = 0;
@@ -76,6 +83,7 @@ void p_write(arena_t *arena, char *argv[], size_t argc, int8_t *data)
 	write(arena, adress, size, data);
 }
 
+// parse pmap
 void p_pmap(arena_t *arena, size_t argc)
 {
 	int8_t result = 0;
@@ -85,6 +93,7 @@ void p_pmap(arena_t *arena, size_t argc)
 	pmap(arena);
 }
 
+// parse mprotect
 void p_mprotect(arena_t *arena, size_t argc, char *argv[], int8_t *data)
 {
 	int8_t result = 0;
@@ -98,6 +107,7 @@ void p_mprotect(arena_t *arena, size_t argc, char *argv[], int8_t *data)
 	mprotect(arena, address, data);
 }
 
+// parse general
 void parse_command(arena_t **arena,
 				   char *command, char *argv[], size_t argc,
 				   int *exit_check,

@@ -1,3 +1,4 @@
+// Copyright 2023 Alexandru Alin-Ioan 312CA
 #include <stdlib.h>
 #include <string.h>
 #include "vma.h"
@@ -6,6 +7,7 @@
 
 #define PERMS_LEN 4
 
+// alloc and init arena
 arena_t *alloc_arena(const uint64_t size)
 {
 	arena_t *arena;
@@ -16,6 +18,7 @@ arena_t *alloc_arena(const uint64_t size)
 	return arena;
 }
 
+// free arena, the data, the nodes, and the lists
 void dealloc_arena(arena_t *arena)
 {
 	dll_node_t *crt = arena->alloc_list->head, *crt_mini;
@@ -32,6 +35,7 @@ void dealloc_arena(arena_t *arena)
 	free(arena);
 }
 
+// check if a new block to add overlaps with an existing one
 int8_t check_overlap(arena_t *arena, const uint64_t address,
 					 const uint64_t size)
 {
@@ -52,6 +56,7 @@ int8_t check_overlap(arena_t *arena, const uint64_t address,
 	return 0;
 }
 
+// alloc and init new block
 block_t *init_block(const uint64_t address, const uint64_t size)
 {
 	block_t *block = malloc(sizeof(block_t));
@@ -62,6 +67,7 @@ block_t *init_block(const uint64_t address, const uint64_t size)
 	return block;
 }
 
+// alloc and init new miniblock
 miniblock_t *init_mini_block(const uint64_t address, const uint64_t size)
 {
 	miniblock_t *miniblock = malloc(sizeof(miniblock_t));
@@ -74,6 +80,7 @@ miniblock_t *init_mini_block(const uint64_t address, const uint64_t size)
 	return miniblock;
 }
 
+// adds a new block to the coresponding lists
 void add_new_block(arena_t *arena,
 				   const uint64_t address, const uint64_t size, size_t pos)
 {
@@ -88,6 +95,7 @@ void add_new_block(arena_t *arena,
 	free(new_mini);
 }
 
+// removes a block from the list and frees its data
 void remove_block(arena_t *arena, dll_node_t *crt, size_t pos)
 {
 	dll_node_t *del;
@@ -97,6 +105,7 @@ void remove_block(arena_t *arena, dll_node_t *crt, size_t pos)
 	free(del);
 }
 
+// add block exactly in between 2 other blocks
 void add_and_merge(arena_t *arena, const uint64_t address, const uint64_t size,
 				   block_t *next_block, block_t *crt_block, size_t pos,
 				   dll_node_t *crt)
@@ -118,18 +127,30 @@ void add_and_merge(arena_t *arena, const uint64_t address, const uint64_t size,
 	free(new_mini);
 }
 
-void alloc_block(arena_t *arena, const uint64_t address, const uint64_t size)
+// check if the block position is valid
+uint8_t invalid_block(arena_t *arena,
+					  const uint64_t address, const uint64_t size)
 {
 	if ((address) >= (arena)->arena_size) {
 		printf("The allocated address is outside the size of arena\n");
-		return;
-	} else if ((address) + (size) > (arena)->arena_size) {
-		printf("The end address is past the size of the arena\n");
-		return;
-	} else if (check_overlap((arena), (address), (size))) {
-		printf("This zone was already allocated.\n");
-		return;
+		return 1;
 	}
+	if ((address) + (size) > (arena)->arena_size) {
+		printf("The end address is past the size of the arena\n");
+		return 1;
+	}
+	if (check_overlap((arena), (address), (size))) {
+		printf("This zone was already allocated.\n");
+		return 1;
+	}
+	return 0;
+}
+
+// alloc block and add it to the memory
+void alloc_block(arena_t *arena, const uint64_t address, const uint64_t size)
+{
+	if (invalid_block(arena, address, size))
+		return;
 	dll_node_t *crt;
 	crt = arena->alloc_list->head;
 	// add block in an empty list (the arena has no other blocks)
@@ -172,6 +193,7 @@ void alloc_block(arena_t *arena, const uint64_t address, const uint64_t size)
 	}
 	// add block next to another block
 	if (crt_block.start_address + crt_block.size == address) {
+		// add at start of block
 		miniblock_t *new_mini = init_mini_block(address, size);
 		DIE(!new_mini, "malloc failed!");
 		list_t *miniblock_list = (*(block_t *)crt->data).miniblock_list;
@@ -181,6 +203,7 @@ void alloc_block(arena_t *arena, const uint64_t address, const uint64_t size)
 		return;
 	}
 	if (crt->next || crt == arena->alloc_list->head) {
+		// add at the back of block
 		if (crt == arena->alloc_list->head)
 			next_block = crt_block;
 		if (next_block.start_address == address + size) {
@@ -201,6 +224,8 @@ void alloc_block(arena_t *arena, const uint64_t address, const uint64_t size)
 	}
 }
 
+// gets a block from the block list and its position in the list based on the
+// address it is at
 void get_block(dll_node_t **crt, block_t **prev_block, block_t **crt_block,
 			   const uint64_t address, size_t *pos)
 {
@@ -219,6 +244,7 @@ void get_block(dll_node_t **crt, block_t **prev_block, block_t **crt_block,
 	}
 }
 
+// same as get_block but for miniblocks
 void get_mini(list_t *miniblock_list, const uint64_t address,
 			  dll_node_t **mini_crt, size_t *pos)
 {
@@ -231,15 +257,18 @@ void get_mini(list_t *miniblock_list, const uint64_t address,
 	}
 }
 
+// deletes the miniblock from the miniblock list and frees memory
 void delete_miniblock(arena_t *arena, block_t *prev_block,
 					  size_t pos_mini, size_t pos_block)
 {
 	dll_node_t *del_mini, *del_block;
 	del_mini = dll_remove_nth_node(prev_block->miniblock_list, pos_mini);
 	prev_block->size -= (*(miniblock_t *)del_mini->data).size;
+	// free miniblock buffer
 	if ((*(miniblock_t *)del_mini->data).rw_buffer)
 		free((*(miniblock_t *)del_mini->data).rw_buffer);
 	if (prev_block->miniblock_list->size == 0) {
+		// remove block if it remains empty
 		dll_free(&prev_block->miniblock_list);
 		del_block = dll_remove_nth_node(arena->alloc_list, pos_block);
 		free(del_block->data);
@@ -254,6 +283,7 @@ void delete_miniblock(arena_t *arena, block_t *prev_block,
 	free(del_mini);
 }
 
+// frees block from memory
 void free_block(arena_t *arena, const uint64_t address)
 {
 	if (!arena->alloc_list->head) {
@@ -279,10 +309,12 @@ void free_block(arena_t *arena, const uint64_t address)
 		printf("Invalid address for free.\n");
 		return;
 	}
+	// if mini is first in list or last in list
 	if (pos_mini == 0 || pos_mini == prev_block->miniblock_list->size - 1) {
 		delete_miniblock(arena, prev_block, pos_mini, pos_block);
 		return;
 	}
+	// if mini is in the middle
 	if (pos_mini > 0 && pos_mini < prev_block->miniblock_list->size - 1) {
 		uint64_t new_adr = (*(miniblock_t *)mini_crt->next->data).start_address;
 		uint64_t new_size = 0;
@@ -291,6 +323,8 @@ void free_block(arena_t *arena, const uint64_t address)
 			new_size += (*(miniblock_t *)i->data).size;
 			i = i->next;
 		}
+		// create new block and init its miniblock list with the
+		// end of the previous list
 		block_t *new_block = init_block(new_adr, new_size);
 		new_block->miniblock_list->size = prev_block->miniblock_list->size
 		- pos_mini - 1;
@@ -298,8 +332,10 @@ void free_block(arena_t *arena, const uint64_t address)
 		new_block->miniblock_list->tail = prev_block->miniblock_list->tail;
 		new_block->miniblock_list->head->prev = NULL;
 
+		// add new block to block list
 		dll_add_nth_node(arena->alloc_list, pos_block + 1, new_block);
 
+		// remove the new_block list from the previous list
 		prev_block->miniblock_list->tail = mini_crt;
 		prev_block->miniblock_list->tail->next = NULL;
 		prev_block->miniblock_list->size = pos_mini + 1;
@@ -311,6 +347,7 @@ void free_block(arena_t *arena, const uint64_t address)
 	}
 }
 
+// check prems for all the miniblocks to write/read
 int8_t check_perms(dll_node_t *mini_crt, miniblock_t *mini,
 				   const uint64_t address, const uint64_t size,
 				   int8_t (*check)(), char *r_w)
@@ -330,6 +367,7 @@ int8_t check_perms(dll_node_t *mini_crt, miniblock_t *mini,
 	return 1;
 }
 
+// read prems condition
 int8_t check_read_perms(miniblock_t *miniblock)
 {
 	if (miniblock->perm != 4 && miniblock->perm != 5 &&
@@ -338,6 +376,7 @@ int8_t check_read_perms(miniblock_t *miniblock)
 	return 1;
 }
 
+// read data from minblocks
 void read(arena_t *arena, uint64_t address, uint64_t size)
 {
 	if (!arena->alloc_list->head) {
@@ -381,7 +420,9 @@ void read(arena_t *arena, uint64_t address, uint64_t size)
 		mini_crt = mini_crt->prev;
 		mini = (miniblock_t *)mini_crt->data;
 	}
+	// size_written until now
 	size_written = 0;
+	// the position where the reading starts in the curent miniblock
 	read_start_address = address - mini->start_address;
 	while (size_written < (int64_t)size && i) {
 		src_buff = (int8_t *)mini->rw_buffer + read_start_address;
@@ -401,6 +442,7 @@ void read(arena_t *arena, uint64_t address, uint64_t size)
 	free(data);
 }
 
+// write prems condition
 int8_t check_write_perms(miniblock_t *miniblock)
 {
 	if (miniblock->perm != 2 && miniblock->perm != 3 &&
@@ -409,6 +451,7 @@ int8_t check_write_perms(miniblock_t *miniblock)
 	return 1;
 }
 
+// write data in miniblocks
 void write(arena_t *arena, const uint64_t address,
 		   const uint64_t size, int8_t *data)
 {
@@ -451,7 +494,9 @@ void write(arena_t *arena, const uint64_t address,
 		mini_crt = mini_crt->prev;
 		mini = (miniblock_t *)mini_crt->data;
 	}
+	// size_written until now
 	size_written = 0;
+	// the position where the writting starts in the curent miniblock
 	write_start_address = address - mini->start_address;
 	while (size_written < (int64_t)size && i) {
 		dest_buff = (int8_t *)mini->rw_buffer + write_start_address;
@@ -468,6 +513,7 @@ void write(arena_t *arena, const uint64_t address,
 	}
 }
 
+// gets the information for the begining of the pmap output 
 void get_pmap_info(const arena_t *arena,
 				   uint64_t *total_mem, uint64_t *free_mem,
 				   uint64_t *allocated_blocks, uint64_t *allocated_minis)
@@ -485,6 +531,7 @@ void get_pmap_info(const arena_t *arena,
 	*free_mem = *total_mem - total_block_size;
 }
 
+// transform prem form int to string
 void get_perms_string(uint8_t perm, char *perm_str)
 {
 	switch (perm) {
@@ -517,6 +564,7 @@ void get_perms_string(uint8_t perm, char *perm_str)
 	}
 }
 
+// print the miniblock list with the pmap format
 void pmap_print_miniblocks(list_t *miniblock_list)
 {
 	char perms[PERMS_LEN];
@@ -534,6 +582,7 @@ void pmap_print_miniblocks(list_t *miniblock_list)
 	}
 }
 
+// print the proccess map
 void pmap(const arena_t *arena)
 {
 	uint64_t total_mem, free_mem, allocated_blocks, allocated_minis;
@@ -548,6 +597,7 @@ void pmap(const arena_t *arena)
 	dll_node_t *crt = arena->alloc_list->head;
 	size_t pos = 1;
 	uint64_t start_address, end_address;
+	// go thorugh block list
 	while (crt) {
 		start_address = (*(block_t *)crt->data).start_address;
 		end_address = start_address + (*(block_t *)crt->data).size;
@@ -561,6 +611,7 @@ void pmap(const arena_t *arena)
 	}
 }
 
+// get perms from string to int
 int8_t get_perms_int(int8_t *permissions)
 {
 	uint8_t total = 0;
@@ -578,6 +629,7 @@ int8_t get_perms_int(int8_t *permissions)
 	return total;
 }
 
+// change permissions on miniblocks
 void mprotect(arena_t *arena, uint64_t address, int8_t *permission)
 {
 	if (!arena->alloc_list->head) {

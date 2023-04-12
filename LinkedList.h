@@ -1,3 +1,4 @@
+// Alexandru Alin-Ioan 312CA
 #ifndef linked_list_h
 #define linked_list_h
 
